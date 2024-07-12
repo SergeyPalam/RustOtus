@@ -94,11 +94,11 @@ impl Room {
         self.devices.insert(dev_name.to_owned(), device);
     }
 
-    fn _get_device(&self, name: &str) -> Option<&dyn SmartDevice> {
+    fn get_device(&self, name: &str) -> Option<&dyn SmartDevice> {
         self.devices.get(name).map(|val| val.as_ref())
     }
 
-    fn _get_devices_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
+    fn get_devices_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
         Box::new(self.devices.keys().map(|name| name.as_str()))
     }
 
@@ -127,7 +127,7 @@ impl SmartHouse {
         }
     }
 
-    fn _get_rooms_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
+    fn get_rooms_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
         Box::new(self.rooms.keys().map(|name| name.as_str()))
     }
 
@@ -135,7 +135,7 @@ impl SmartHouse {
         self.rooms.insert(room_name.to_owned(), room);
     }
 
-    fn _get_room(&self, room_name: &str) -> Option<&Room> {
+    fn get_room(&self, room_name: &str) -> Option<&Room> {
         self.rooms.get(room_name)
     }
 
@@ -172,5 +172,13 @@ fn main() {
 
     smart_house.add_room("kitchen", kitchen);
 
+    let room_names: Vec<&str> = smart_house.get_rooms_names().collect();
+    assert_eq!(room_names.len(), 2);
+
+    let room = smart_house.get_room(room_names[0]).unwrap();
+    let dev_names: Vec<&str> = room.get_devices_names().collect();
+    assert_eq!(dev_names.len(), 2);
+    let device = room.get_device(dev_names[0]).unwrap();
+    println!("device: {}, state: {}", dev_names[0], device.get_state());
     println!("{}", smart_house.get_report());
 }

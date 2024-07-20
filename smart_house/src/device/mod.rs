@@ -5,6 +5,7 @@ pub enum DeviceType {
     SmartThermometer,
 }
 
+#[derive(Debug)]
 pub enum DeviceState {
     Ok(String),
     #[allow(dead_code)]
@@ -40,8 +41,8 @@ impl SmartSocket {
         todo!("Impl turn off functionality");
     }
 
-    pub fn get_current_power(&self) -> f64 {
-        0.0
+    pub fn get_current_power(&self) -> Result<f64, String> {
+        Ok(0.0)
     }
 }
 
@@ -53,12 +54,13 @@ impl SmartDevice for SmartSocket {
         "Smart socket".to_owned()
     }
     fn get_state(&self) -> DeviceState {
-        let report = format!(
-            "{}, current power: {}",
-            self.description(),
-            self.get_current_power()
-        );
-        DeviceState::Ok(report)
+        match self.get_current_power() {
+            Ok(power) => {
+                let report = format!("{}, current power: {}", self.description(), power);
+                DeviceState::Ok(report)
+            }
+            Err(err) => DeviceState::Fault(err),
+        }
     }
 }
 
@@ -70,8 +72,8 @@ impl SmartThermometer {
         Self {}
     }
 
-    pub fn get_current_temp(&self) -> f64 {
-        0.0
+    pub fn get_current_temp(&self) -> Result<f64, String> {
+        Ok(0.0)
     }
 }
 
@@ -83,12 +85,17 @@ impl SmartDevice for SmartThermometer {
         "Smart thermometer".to_owned()
     }
     fn get_state(&self) -> DeviceState {
-        let report = format!(
-            "{}, current temperature: {}",
-            self.description(),
-            self.get_current_temp()
-        );
-        DeviceState::Ok(report)
+        match self.get_current_temp() {
+            Ok(temperature) => {
+                let report = format!(
+                    "{}, current temperature: {}",
+                    self.description(),
+                    temperature
+                );
+                DeviceState::Ok(report)
+            }
+            Err(err) => DeviceState::Fault(err),
+        }
     }
 }
 

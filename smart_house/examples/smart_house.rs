@@ -24,10 +24,10 @@ fn main() {
     let room_names: Vec<&str> = smart_house.get_rooms_names().collect();
     assert_eq!(room_names.len(), 2);
 
-    let room = smart_house.get_room(room_names[0]).unwrap();
+    let room = smart_house.get_room(room_names[0]).expect("Room not found");
     let dev_names: Vec<&str> = room.get_devices_names().collect();
     assert_eq!(dev_names.len(), 2);
-    let device = room.get_device(dev_names[0]).unwrap();
+    let device = room.get_device(dev_names[0]).expect("Device not found");
     println!("device: {}, state: {}", dev_names[0], device.get_state());
     println!("{}", smart_house.get_report());
 }

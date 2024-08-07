@@ -3,9 +3,9 @@ use smart_house::room::Room;
 use smart_house::SmartHouse;
 #[test]
 fn test_rooms_operations() {
-    let room1 = Room::new();
-    let room2 = Room::new();
-    let room3 = Room::new();
+    let room1 = Room::default();
+    let room2 = Room::default();
+    let room3 = Room::default();
     let mut smart_house = SmartHouse::new("My smart house");
     smart_house.add_room("bedroom", room1);
     smart_house.add_room("kitchen", room2);
@@ -14,24 +14,29 @@ fn test_rooms_operations() {
     assert_eq!(names.len(), 2);
     assert_eq!(names.iter().filter(|&&name| name.eq("bedroom")).count(), 1);
     assert_eq!(names.iter().filter(|&&name| name.eq("kitchen")).count(), 1);
+
+    let _ = smart_house.remove_room("kitchen").unwrap();
+    let names: Vec<&str> = smart_house.get_rooms_names().collect();
+    assert_eq!(names.len(), 1);
+    assert_eq!(names[0], "bedroom");
 }
 
 #[test]
 fn test_report() {
-    let smart_soc = Box::new(SmartSocket::new());
-    let smart_therm = Box::new(SmartThermometer::new());
+    let smart_soc = Box::new(SmartSocket::default());
+    let smart_therm = Box::new(SmartThermometer::default());
 
-    let mut bedroom = Room::new();
+    let mut bedroom = Room::default();
     bedroom.add_device("dev1", smart_soc);
     bedroom.add_device("dev2", smart_therm);
 
     let mut smart_house = SmartHouse::new("My house");
     smart_house.add_room("bedroom", bedroom);
 
-    let smart_soc = Box::new(SmartSocket::new());
-    let smart_therm = Box::new(SmartThermometer::new());
+    let smart_soc = Box::new(SmartSocket::default());
+    let smart_therm = Box::new(SmartThermometer::default());
 
-    let mut kitchen = Room::new();
+    let mut kitchen = Room::default();
     kitchen.add_device("dev1", smart_soc);
     kitchen.add_device("dev2", smart_therm);
 

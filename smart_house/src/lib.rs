@@ -25,6 +25,10 @@ impl SmartHouse {
         self.rooms.insert(room_name.to_owned(), room);
     }
 
+    pub fn remove_room(&mut self, room_name: &str) -> Option<(String, Room)> {
+        self.rooms.remove_entry(room_name)
+    }
+
     pub fn get_room(&self, room_name: &str) -> Option<&Room> {
         self.rooms.get(room_name)
     }

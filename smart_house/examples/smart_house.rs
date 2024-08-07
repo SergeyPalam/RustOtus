@@ -2,20 +2,20 @@ use smart_house::device::*;
 use smart_house::room::Room;
 use smart_house::SmartHouse;
 fn main() {
-    let smart_soc = Box::new(SmartSocket::new());
-    let smart_therm = Box::new(SmartThermometer::new());
+    let smart_soc = Box::new(SmartSocket::default());
+    let smart_therm = Box::new(SmartThermometer::default());
 
-    let mut bedroom = Room::new();
+    let mut bedroom = Room::default();
     bedroom.add_device("dev1", smart_soc);
     bedroom.add_device("dev2", smart_therm);
 
     let mut smart_house = SmartHouse::new("My house");
     smart_house.add_room("bedroom", bedroom);
 
-    let smart_soc = Box::new(SmartSocket::new());
-    let smart_therm = Box::new(SmartThermometer::new());
+    let smart_soc = Box::new(SmartSocket::default());
+    let smart_therm = Box::new(SmartThermometer::default());
 
-    let mut kitchen = Room::new();
+    let mut kitchen = Room::default();
     kitchen.add_device("dev1", smart_soc);
     kitchen.add_device("dev2", smart_therm);
 

@@ -7,14 +7,12 @@ pub struct Room {
 }
 
 impl Room {
-    pub fn new() -> Room {
-        Room {
-            devices: HashMap::new(),
-        }
-    }
-
     pub fn add_device(&mut self, dev_name: &str, device: Box<dyn SmartDevice>) {
         self.devices.insert(dev_name.to_owned(), device);
+    }
+
+    pub fn remove_device(&mut self, dev_name: &str) -> Option<(String, Box<dyn SmartDevice>)> {
+        self.devices.remove_entry(dev_name)
     }
 
     pub fn get_device(&self, name: &str) -> Option<&dyn SmartDevice> {
@@ -45,10 +43,10 @@ mod tests {
 
     #[test]
     fn test_add_device() {
-        let mut room = Room::new();
-        let dev1 = Box::new(SmartSocket::new());
-        let dev2 = Box::new(SmartThermometer::new());
-        let dev3 = Box::new(SmartSocket::new());
+        let mut room = Room::default();
+        let dev1 = Box::new(SmartSocket::default());
+        let dev2 = Box::new(SmartThermometer::default());
+        let dev3 = Box::new(SmartSocket::default());
 
         room.add_device("dev1", dev1);
         room.add_device("dev2", dev2);
@@ -64,11 +62,34 @@ mod tests {
     }
 
     #[test]
+    fn test_remove_device() {
+        let mut room = Room::default();
+        let dev1 = Box::new(SmartSocket::default());
+        let dev2 = Box::new(SmartThermometer::default());
+        let dev3 = Box::new(SmartSocket::default());
+
+        room.add_device("dev1", dev1);
+        room.add_device("dev2", dev2);
+        room.add_device("dev3", dev3);
+
+        let dev_names = room.get_devices_names().collect::<Vec<&str>>();
+        assert_eq!(dev_names.len(), 3);
+
+        let removed = room.remove_device("dev2").unwrap();
+        assert_eq!(removed.0, "dev2");
+        let dev_names = room.get_devices_names().collect::<Vec<&str>>();
+        assert_eq!(dev_names.len(), 2);
+
+        let removed = room.remove_device("dev4");
+        assert!(removed.is_none());
+    }
+
+    #[test]
     fn test_get_report() {
-        let mut room = Room::new();
-        let dev1 = Box::new(SmartSocket::new());
-        let dev2 = Box::new(SmartThermometer::new());
-        let dev3 = Box::new(SmartSocket::new());
+        let mut room = Room::default();
+        let dev1 = Box::new(SmartSocket::default());
+        let dev2 = Box::new(SmartThermometer::default());
+        let dev3 = Box::new(SmartSocket::default());
 
         room.add_device("dev1", dev1);
         room.add_device("dev2", dev2);

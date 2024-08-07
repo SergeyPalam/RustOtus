@@ -29,10 +29,6 @@ pub trait SmartDevice {
 pub struct SmartSocket {}
 
 impl SmartSocket {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn _turn_on(&mut self) {
         todo!("Impl turn on functionality");
     }
@@ -68,10 +64,6 @@ impl SmartDevice for SmartSocket {
 pub struct SmartThermometer {}
 
 impl SmartThermometer {
-    pub fn new() -> Self {
-        Self {}
-    }
-
     pub fn get_current_temp(&self) -> Result<f64, String> {
         Ok(0.0)
     }
@@ -104,7 +96,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_smart_socket_dev_type() {
-        let smart_device: Box<dyn SmartDevice> = Box::new(SmartSocket::new());
+        let smart_device: Box<dyn SmartDevice> = Box::new(SmartSocket::default());
         let dev_type = smart_device.get_type();
         match dev_type {
             DeviceType::SmartSocket => assert!(true),
@@ -114,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_smart_thermometer_dev_type() {
-        let smart_device: Box<dyn SmartDevice> = Box::new(SmartThermometer::new());
+        let smart_device: Box<dyn SmartDevice> = Box::new(SmartThermometer::default());
         let dev_type = smart_device.get_type();
         match dev_type {
             DeviceType::SmartThermometer => assert!(true),

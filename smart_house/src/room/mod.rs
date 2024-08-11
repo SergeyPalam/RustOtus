@@ -19,8 +19,8 @@ impl Room {
         self.devices.get(name).map(|val| val.as_ref())
     }
 
-    pub fn get_devices_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-        Box::new(self.devices.keys().map(|name| name.as_str()))
+    pub fn get_devices_names(&self) -> impl Iterator<Item = &str> {
+        self.devices.keys().map(|name| name.as_str())
     }
 
     pub fn get_report(&self) -> String {

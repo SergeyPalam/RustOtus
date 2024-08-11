@@ -17,8 +17,8 @@ impl SmartHouse {
         }
     }
 
-    pub fn get_rooms_names<'a>(&'a self) -> Box<dyn Iterator<Item = &str> + 'a> {
-        Box::new(self.rooms.keys().map(|name| name.as_str()))
+    pub fn get_rooms_names(&self) -> impl Iterator<Item = &str> {
+        self.rooms.keys().map(|name| name.as_str())
     }
 
     pub fn add_room(&mut self, room_name: &str, room: Room) {

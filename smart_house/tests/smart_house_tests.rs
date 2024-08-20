@@ -1,4 +1,7 @@
-use smart_house::device::*;
+use std::net::TcpStream;
+
+use smart_house::device::smart_socket::*;
+use smart_house::device::smart_thermometer::*;
 use smart_house::room::Room;
 use smart_house::SmartHouse;
 #[test]
@@ -23,7 +26,7 @@ fn test_rooms_operations() {
 
 #[test]
 fn test_report() {
-    let smart_soc = Box::new(SmartSocket::default());
+    let smart_soc = Box::new(SmartSocket::<TcpStream>::default());
     let smart_therm = Box::new(SmartThermometer::default());
 
     let mut bedroom = Room::default();
@@ -33,7 +36,7 @@ fn test_report() {
     let mut smart_house = SmartHouse::new("My house");
     smart_house.add_room("bedroom", bedroom);
 
-    let smart_soc = Box::new(SmartSocket::default());
+    let smart_soc = Box::new(SmartSocket::<TcpStream>::default());
     let smart_therm = Box::new(SmartThermometer::default());
 
     let mut kitchen = Room::default();

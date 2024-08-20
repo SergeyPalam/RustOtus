@@ -26,7 +26,15 @@ impl Room {
     pub fn get_report(&self) -> String {
         let mut res = String::new();
         for (dev_name, device) in self.devices.iter() {
-            let dev_report = format!("{dev_name}: {}", device.get_state());
+            let dev_report = match device.get_state() {
+                Ok(state) => {
+                    format!("{dev_name}: {}", state)
+                }
+                Err(err) => {
+                    format!("{dev_name}: {}", err)
+                }
+            };
+
             res.push_str(&dev_report);
             res.push('\n');
         }
@@ -37,16 +45,51 @@ impl Room {
 
 #[cfg(test)]
 mod tests {
-    use crate::device::{SmartSocket, SmartThermometer};
+    use std::io::{Cursor, Read, Write};
+    use std::net::TcpStream;
+
+    use crate::device::smart_socket::*;
+    use crate::device::smart_thermometer::*;
+    use crate::device::socket_protocol::*;
+    use crate::device::transport_layer::*;
 
     use super::*;
+
+    struct TestStream {
+        tx: Cursor<Vec<u8>>,
+        rx: Cursor<Vec<u8>>,
+    }
+
+    impl TestStream {
+        fn new(tx: Vec<u8>, rx: Vec<u8>) -> Self {
+            Self {
+                tx: Cursor::new(tx),
+                rx: Cursor::new(rx),
+            }
+        }
+    }
+
+    impl Read for TestStream {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            self.rx.read(buf)
+        }
+    }
+
+    impl Write for TestStream {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.tx.write(buf)
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            self.tx.flush()
+        }
+    }
 
     #[test]
     fn test_add_device() {
         let mut room = Room::default();
-        let dev1 = Box::new(SmartSocket::default());
+        let dev1 = Box::new(SmartSocket::<TcpStream>::default());
         let dev2 = Box::new(SmartThermometer::default());
-        let dev3 = Box::new(SmartSocket::default());
+        let dev3 = Box::new(SmartSocket::<TcpStream>::default());
 
         room.add_device("dev1", dev1);
         room.add_device("dev2", dev2);
@@ -64,9 +107,9 @@ mod tests {
     #[test]
     fn test_remove_device() {
         let mut room = Room::default();
-        let dev1 = Box::new(SmartSocket::default());
+        let dev1 = Box::new(SmartSocket::<TcpStream>::default());
         let dev2 = Box::new(SmartThermometer::default());
-        let dev3 = Box::new(SmartSocket::default());
+        let dev3 = Box::new(SmartSocket::<TcpStream>::default());
 
         room.add_device("dev1", dev1);
         room.add_device("dev2", dev2);
@@ -86,14 +129,17 @@ mod tests {
 
     #[test]
     fn test_get_report() {
-        let mut room = Room::default();
-        let dev1 = Box::new(SmartSocket::default());
-        let dev2 = Box::new(SmartThermometer::default());
-        let dev3 = Box::new(SmartSocket::default());
+        let sock_req = SockRequest::new_turn_on().serialize();
+        let sock_resp =
+            SockResponse::new(RespType::Success, ReqType::TurnOn, Vec::new()).serialize();
+        let sock_pack_req = TranportPack::new(TypePack::Simple, sock_req).serialize();
+        let sock_pack_resp = TranportPack::new(TypePack::Simple, sock_resp).serialize();
 
+        let test_stream = TestStream::new(sock_pack_req, sock_pack_resp);
+        let mut room = Room::default();
+        let mut dev1 = Box::new(SmartSocket::<TestStream>::default());
+        dev1.set_stream(test_stream);
         room.add_device("dev1", dev1);
-        room.add_device("dev2", dev2);
-        room.add_device("dev2", dev3);
 
         let room_report = room.get_report();
         assert!(!room_report.is_empty());

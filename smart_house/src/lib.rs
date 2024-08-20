@@ -1,4 +1,5 @@
 pub mod device;
+pub mod err_house;
 pub mod room;
 
 use room::Room;
@@ -33,10 +34,10 @@ impl SmartHouse {
         self.rooms.get(room_name)
     }
 
-    pub fn get_report(&self) -> String {
+    pub fn get_report(&mut self) -> String {
         let mut res = String::from(&self.name);
         res.push('\n');
-        for (room_name, room) in self.rooms.iter() {
+        for (room_name, room) in self.rooms.iter_mut() {
             res.push_str(format!("{room_name}:\n").as_str());
             res.push_str(&room.get_report());
             res.push('\n');

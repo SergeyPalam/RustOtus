@@ -1,0 +1,26 @@
+{
+"tcp":{
+  "devices" : [
+    {
+     "name" : "sock1",
+     "type" : "socket"
+    },
+    {
+     "name" : "sock2",
+     "type" : "socket"
+    }
+  ]
+},
+"udp":{
+  "devices" : [
+    {
+     "name" : "therm1",
+     "type" : "therm"
+    },
+    {
+     "name" : "therm2",
+     "type" : "therm"
+    }	
+  ]
+} 
+}

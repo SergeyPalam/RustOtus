@@ -1,5 +1,6 @@
 use crate::err_house;
 use std::io::Read;
+use log::*;
 
 const SIMPLE_PACK: u8 = 0xA2;
 
@@ -60,12 +61,15 @@ impl TranportPack {
                 reader.read_exact(&mut payload)?;
                 Ok(Self { type_pack, payload })
             }
-            TypePack::Unknown(val) => Err(err_house::Err::new(&format!("Unknown type pack {val}"))),
+            TypePack::Unknown(val) => {
+                error!("Unknown type pack: {val}");
+                Err(err_house::Err::new(err_house::ErrorKind::UnknownTypePack))
+            },
         }
     }
 
-    pub fn get_payload(&self) -> &[u8] {
-        &self.payload
+    pub fn into_payload(self) -> Vec<u8> {
+        self.payload
     }
 }
 

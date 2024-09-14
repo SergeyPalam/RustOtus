@@ -1,0 +1,8 @@
+INFO: src\main.rs 37(thread: 152) Start smart house client
+INFO: src\smart_house_tcp_client.rs 29(thread: 152) TcpClient created
+INFO: src\smart_house_udp_client.rs 29(thread: 152) UdpClient created
+INFO: src\console_server.rs 80(thread: 152) Service: TcpClient connected
+INFO: src\console_server.rs 80(thread: 152) Service: UdpClient connected
+INFO: src\console_server.rs 237(thread: 152) Exit from emulator
+INFO: src\smart_house_tcp_client.rs 89(thread: 11388) Exit from tcp client
+INFO: src\smart_house_udp_client.rs 95(thread: 2044) Exit from udp client

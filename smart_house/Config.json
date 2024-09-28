@@ -1,0 +1,38 @@
+{
+  "rooms" : [
+    {
+      "name" : "kitchen",
+      "devices" : [
+        {
+          "name" : "sock1",
+          "type_dev" : "socket",
+          "addr" : "127.0.0.1:444",
+          "protocol" : "tcp"
+        },
+        {
+          "name" : "therm1",
+          "type_dev" : "therm",
+          "addr" : "127.0.0.1:4444",
+          "protocol" : "udp"
+        }
+      ]
+    },
+    {
+      "name" : "bedroom",
+      "devices" : [
+        {
+          "name" : "sock2",
+          "type_dev" : "socket",
+          "addr" : "127.0.0.1:445",
+          "protocol" : "tcp"
+        },
+        {
+          "name" : "therm2",
+          "type_dev" : "therm",
+          "addr" : "127.0.0.1:4445",
+          "protocol" : "udp"
+        }
+      ]
+    }
+  ]
+}

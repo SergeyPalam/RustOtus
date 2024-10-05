@@ -5,7 +5,6 @@ use log::*;
 use crate::transport_layer::{TranportPack, TypePack};
 use bincode;
 use crate::protocol;
-use crate::task;
 use rand::prelude::{thread_rng, Rng};
 use rand_distr::StandardNormal;
 
@@ -18,8 +17,8 @@ pub struct SockEmulator {
     is_turned_on: bool,
 }
 
-impl task::Start for SockEmulator {
-     async fn start(mut self){
+impl SockEmulator {
+     pub async fn start(mut self){
         let listener = 
         match TcpListener::bind(&self.ip_addr).await{
             Ok(res) => res,

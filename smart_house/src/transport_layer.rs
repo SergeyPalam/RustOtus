@@ -113,11 +113,11 @@ mod tests {
         assert_eq!(bytes, expected);
     }
 
-    #[test]
-    fn test_pack_from_reader() {
+    #[tokio::test]
+    async fn test_pack_from_reader() {
         let bytes = vec![SIMPLE_PACK, 3, 1, 2, 3];
         let mut stream = Cursor::new(bytes);
-        let pack = TranportPack::from_reader(&mut stream).unwrap();
+        let pack = TranportPack::from_reader(&mut stream).await.unwrap();
         if let TypePack::Unknown(_) = pack.type_pack {
             panic!();
         }
@@ -127,13 +127,13 @@ mod tests {
         let bytes = vec![SIMPLE_PACK, 3, 1, 2];
         let mut stream = Cursor::new(bytes);
 
-        let pack = TranportPack::from_reader(&mut stream);
+        let pack = TranportPack::from_reader(&mut stream).await;
         assert!(pack.is_err());
 
         let bytes = vec![SIMPLE_PACK, 3, 3, 4, 5, 47];
         let mut stream = Cursor::new(bytes);
 
-        let pack = TranportPack::from_reader(&mut stream).unwrap();
+        let pack = TranportPack::from_reader(&mut stream).await.unwrap();
         if let TypePack::Unknown(_) = pack.type_pack {
             panic!();
         }
@@ -143,7 +143,7 @@ mod tests {
         let bytes = vec![];
         let mut stream = Cursor::new(bytes);
 
-        let pack = TranportPack::from_reader(&mut stream);
+        let pack = TranportPack::from_reader(&mut stream).await;
         assert!(pack.is_err());
     }
 }

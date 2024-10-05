@@ -1,7 +1,6 @@
 use tokio::net::tcp::OwnedReadHalf;
 use tokio;
 use crate::transport_layer::TranportPack;
-use crate::task;
 use log::*;
 use crate::protocol;
 use bincode;
@@ -10,8 +9,8 @@ pub struct SockHandler{
     rx_sock: OwnedReadHalf,
 }
 
-impl task::Start for SockHandler{
-     async fn start(mut self) {
+impl SockHandler{
+     pub async fn start(mut self) {
         loop{
             let pack =
             match TranportPack::from_reader(&mut self.rx_sock).await{

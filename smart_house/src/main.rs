@@ -4,7 +4,6 @@ mod protocol;
 mod smart_house;
 mod room;
 mod device;
-mod task;
 
 use log::*;
 use log4rs::append::file::FileAppender;
@@ -14,6 +13,14 @@ use tokio;
 use std::io::Result;
 use device::*;
 use protocol::*;
+use tokio::task::JoinSet;
+use lazy_static::lazy_static;
+use std::sync::{Arc, RwLock};
+use std::mem::replace;
+
+lazy_static! {
+    pub static ref DB_TASKS: Arc<RwLock<JoinSet<()>>> = Arc::new(RwLock::new(JoinSet::new()));
+}
 
 fn init_logger() {
     let logfile = FileAppender::builder()
@@ -54,10 +61,9 @@ async fn main() -> Result<()>{
 
     let therm_req = protocol::Request::new(smart_therm.get_addr(), Cmd::Power);
     smart_therm.send_req(therm_req).await.unwrap();
-    smart_socket.emulator_beacon.unwrap().join_handle.await.unwrap();
-    smart_socket.handler_beacon.unwrap().join_handle.await.unwrap();
-    smart_therm.emulator_beacon.unwrap().join_handle.await.unwrap();
-    smart_therm.handler_beacon.unwrap().join_handle.await.unwrap();
+    let mut lock = DB_TASKS.write().unwrap();
+    let all_tasks = replace(&mut *lock, JoinSet::new());
+    all_tasks.join_all().await;
     info!("End smart house app");
     Ok(())
 }

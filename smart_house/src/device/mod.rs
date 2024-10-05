@@ -12,8 +12,8 @@ use sock_handler::SockHandler;
 use therm_handler::ThermHandler;
 use sock_view::SockView;
 use therm_view::ThermView;
-use crate::task;
-use crate::protocol;
+use crate::{protocol, DB_TASKS};
+use tokio::task::AbortHandle;
 
 use std::{borrow::Borrow, hash::Hash};
 
@@ -41,8 +41,8 @@ pub struct Device {
     name: String,
     ip_addr: String,
     dev_type: DevType,
-    pub emulator_beacon: Option<task::TaskBeacon>,
-    pub handler_beacon: Option<task::TaskBeacon>,
+    emulator_abort: Option<AbortHandle>,
+    handler_abort: Option<AbortHandle>,
     view: Option<View>,
 }
 
@@ -72,8 +72,8 @@ impl Device {
             name: name.to_owned(),
             ip_addr: ip_addr.to_owned(),
             dev_type,
-            emulator_beacon: None,
-            handler_beacon: None,
+            emulator_abort: None,
+            handler_abort: None,
             view: None,
         }
     }
@@ -90,19 +90,27 @@ impl Device {
         match self.dev_type {
             DevType::Sock => {
                 if is_use_emulator {
-                    self.emulator_beacon = Some(task::start(SockEmulator::new(&self.ip_addr)));
+                    let mut lock = DB_TASKS.write().unwrap();
+                    let abort_handle = lock.spawn(SockEmulator::new(&self.ip_addr).start());
+                    self.emulator_abort = Some(abort_handle);
                 }
                 let (view, rx) = SockView::connect(&self.ip_addr, 3).await?;
                 self.view = Some(View::SockView(view));
-                self.handler_beacon = Some(task::start(SockHandler::new(rx)));
+                let mut lock = DB_TASKS.write().unwrap();
+                let abort_handle = lock.spawn(SockHandler::new(rx).start());
+                self.handler_abort = Some(abort_handle);
             }
             DevType::Therm => {
                 if is_use_emulator {
-                    self.emulator_beacon = Some(task::start(ThermEmulator::new(&self.ip_addr)));
+                    let mut lock = DB_TASKS.write().unwrap();
+                    let abort_handle = lock.spawn(ThermEmulator::new(&self.ip_addr).start());
+                    self.emulator_abort = Some(abort_handle);
                 }
                 let (view, rx) = ThermView::connect(&self.ip_addr).await?;
                 self.view = Some(View::ThermView(view));
-                self.handler_beacon = Some(task::start(ThermHandler::new(rx)));
+                let mut lock = DB_TASKS.write().unwrap();
+                let abort_handle = lock.spawn(ThermHandler::new(rx).start());
+                self.handler_abort = Some(abort_handle);
             }
         }
         Ok(())

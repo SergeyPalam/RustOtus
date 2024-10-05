@@ -4,7 +4,6 @@ use log::*;
 use crate::transport_layer::{TranportPack, TypePack};
 use bincode;
 use crate::protocol;
-use crate::task;
 use rand::prelude::{thread_rng, Rng};
 use rand_distr::StandardNormal;
 
@@ -16,8 +15,8 @@ pub struct ThermEmulator {
     is_turned_on: bool,
 }
 
-impl task::Start for ThermEmulator {
-     async fn start(mut self) {
+impl ThermEmulator {
+     pub async fn start(mut self) {
         let udp_sock = 
         match UdpSocket::bind(&self.ip_addr).await{
             Ok(res) => res,

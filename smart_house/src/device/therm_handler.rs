@@ -1,7 +1,6 @@
 use tokio::net::UdpSocket;
 use tokio;
 use crate::transport_layer::TranportPack;
-use crate::task;
 use log::*;
 use crate::protocol;
 use std::sync::Arc;
@@ -11,8 +10,8 @@ pub struct ThermHandler{
     rx_sock: Arc<UdpSocket>,
 }
 
-impl task::Start for ThermHandler {
-    async fn start(self) {
+impl ThermHandler {
+    pub async fn start(self) {
         loop{
             let mut buf = vec![0u8; 1500];
             let size =

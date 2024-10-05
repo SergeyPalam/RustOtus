@@ -1,4 +1,5 @@
 use crate::err_house;
+use anyhow::{bail, Result};
 use log::*;
 use tokio::io::AsyncReadExt;
 
@@ -49,10 +50,10 @@ impl TranportPack {
         res
     }
 
-    pub fn deserialize(bin_pack: &[u8]) -> Result<Self, err_house::Err>{
+    pub fn deserialize(bin_pack: &[u8]) -> Result<Self> {
         if bin_pack.is_empty() {
             error!("Pack is empty");
-            return Err(err_house::Err::new(err_house::ErrorKind::DeserializationError));
+            bail!(err_house::ErrorKind::DeserializationError);
         }
 
         let type_pack = TypePack::from(bin_pack[0]);
@@ -60,22 +61,27 @@ impl TranportPack {
             TypePack::Simple => {
                 let payload_len = bin_pack[1] as usize;
                 if bin_pack.len() < payload_len + 2 {
-                    error!("Pack is to short. Pack len is {}, but payload len is {}", bin_pack.len(), payload_len);
-                    return Err(err_house::Err::new(err_house::ErrorKind::DeserializationError));
+                    error!(
+                        "Pack is to short. Pack len is {}, but payload len is {}",
+                        bin_pack.len(),
+                        payload_len
+                    );
+                    bail!(err_house::ErrorKind::DeserializationError);
                 }
                 let payload = bin_pack[2..].to_vec();
                 Ok(Self { type_pack, payload })
             }
             TypePack::Unknown(val) => {
                 error!("Unknown type pack: {val}");
-                Err(err_house::Err::new(err_house::ErrorKind::UnknownTypePack))
+                bail!(err_house::ErrorKind::UnknownTypePack)
             }
         }
     }
 
-    pub async fn from_reader<T>(reader: &mut T) -> Result<Self, err_house::Err> 
-    where T: Unpin,
-          T: AsyncReadExt
+    pub async fn from_reader<T>(reader: &mut T) -> Result<Self>
+    where
+        T: Unpin,
+        T: AsyncReadExt,
     {
         let mut type_pack = vec![0];
         reader.read_exact(&mut type_pack).await?;
@@ -90,7 +96,7 @@ impl TranportPack {
             }
             TypePack::Unknown(val) => {
                 error!("Unknown type pack: {val}");
-                Err(err_house::Err::new(err_house::ErrorKind::UnknownTypePack))
+                bail!(err_house::ErrorKind::UnknownTypePack)
             }
         }
     }

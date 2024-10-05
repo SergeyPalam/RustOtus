@@ -1,21 +1,18 @@
-use tokio::net::UdpSocket;
-use tokio;
+use crate::protocol;
 use crate::transport_layer::TranportPack;
 use log::*;
-use crate::protocol;
 use std::sync::Arc;
-use bincode;
+use tokio::net::UdpSocket;
 
-pub struct ThermHandler{
+pub struct ThermHandler {
     rx_sock: Arc<UdpSocket>,
 }
 
 impl ThermHandler {
     pub async fn start(self) {
-        loop{
+        loop {
             let mut buf = vec![0u8; 1500];
-            let size =
-            match self.rx_sock.recv(&mut buf).await{
+            let size = match self.rx_sock.recv(&mut buf).await {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Internal error: {:?}", e);
@@ -24,8 +21,7 @@ impl ThermHandler {
             };
 
             buf.shrink_to(size);
-            let pack =
-            match TranportPack::deserialize(&buf){
+            let pack = match TranportPack::deserialize(&buf) {
                 Ok(val) => val,
                 Err(_) => {
                     info!("Invalid packet");
@@ -34,8 +30,7 @@ impl ThermHandler {
             };
 
             let bin_resp = pack.into_payload();
-            let resp = 
-            match bincode::deserialize(&bin_resp){
+            let resp = match bincode::deserialize(&bin_resp) {
                 Ok(val) => val,
                 Err(e) => {
                     info!("Can't deserialize response: {:?}", e);
@@ -47,14 +42,12 @@ impl ThermHandler {
     }
 }
 
-impl ThermHandler{
+impl ThermHandler {
     pub fn new(rx_sock: Arc<UdpSocket>) -> Self {
-        Self {
-            rx_sock,
-        }
+        Self { rx_sock }
     }
 
-    fn handle_response(&self, resp: &protocol::Response){
+    fn handle_response(&self, resp: &protocol::Response) {
         println!("{}", resp);
     }
 }

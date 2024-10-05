@@ -1,10 +1,10 @@
 use super::device::Device;
-use std::collections::HashSet;
 use log::*;
-use std::iter::Iterator;
 use std::borrow::Borrow;
+use std::cmp::{Eq, PartialEq};
+use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
-use std::cmp::{PartialEq, Eq};
+use std::iter::Iterator;
 
 #[derive(Default, Eq)]
 pub struct Room {
@@ -52,4 +52,3 @@ impl PartialEq for Room {
         self.name == other.name
     }
 }
-

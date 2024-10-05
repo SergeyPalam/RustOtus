@@ -1,18 +1,19 @@
 mod sock_emulator;
-mod therm_emulator;
 mod sock_handler;
-mod therm_handler;
 mod sock_view;
+mod therm_emulator;
+mod therm_handler;
 mod therm_view;
 use super::err_house;
 
-use sock_emulator::SockEmulator;
-use therm_emulator::ThermEmulator;
-use sock_handler::SockHandler;
-use therm_handler::ThermHandler;
-use sock_view::SockView;
-use therm_view::ThermView;
 use crate::{protocol, DB_TASKS};
+use anyhow::{bail, Result};
+use sock_emulator::SockEmulator;
+use sock_handler::SockHandler;
+use sock_view::SockView;
+use therm_emulator::ThermEmulator;
+use therm_handler::ThermHandler;
+use therm_view::ThermView;
 use tokio::task::AbortHandle;
 
 use std::{borrow::Borrow, hash::Hash};
@@ -29,7 +30,7 @@ pub enum View {
 }
 
 impl View {
-    pub async fn send_req(&mut self, req: protocol::Request) -> Result<(), err_house::Err> {
+    pub async fn send_req(&mut self, req: protocol::Request) -> Result<()> {
         match self {
             View::SockView(val) => val.send_req(req).await,
             View::ThermView(val) => val.send_req(req).await,
@@ -86,7 +87,7 @@ impl Device {
         &self.ip_addr
     }
 
-    pub async fn connect(&mut self, is_use_emulator: bool) -> Result<(), err_house::Err> {
+    pub async fn connect(&mut self, is_use_emulator: bool) -> Result<()> {
         match self.dev_type {
             DevType::Sock => {
                 if is_use_emulator {
@@ -116,13 +117,12 @@ impl Device {
         Ok(())
     }
 
-    pub async fn send_req(&mut self, req: protocol::Request) -> Result<(), err_house::Err> {
+    pub async fn send_req(&mut self, req: protocol::Request) -> Result<()> {
         let view = if let Some(val) = self.view.as_mut() {
             val
-        }else {
-            return Err(err_house::Err::new(err_house::ErrorKind::NotOpenedConnection));
+        } else {
+            bail!(err_house::ErrorKind::NotOpenedConnection);
         };
         view.send_req(req).await
-
     }
 }

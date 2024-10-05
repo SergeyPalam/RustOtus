@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-pub enum Cmd{
+pub enum Cmd {
     TurnOn,
     TurnOff,
     Power,
@@ -27,7 +27,7 @@ pub struct Request {
 }
 
 impl Request {
-    pub fn new(addr: &str, cmd: Cmd) -> Self{
+    pub fn new(addr: &str, cmd: Cmd) -> Self {
         Self {
             addr: addr.to_owned(),
             cmd,
@@ -127,6 +127,10 @@ impl Response {
 
 impl Display for Response {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "response for request {}: {}", &self.to_req, self.resp_kind)
+        write!(
+            f,
+            "response for request {}: {}",
+            &self.to_req, self.resp_kind
+        )
     }
 }

@@ -1,13 +1,10 @@
-use tokio::io::AsyncWriteExt;
-use tokio;
-use tokio::net::TcpListener;
-use log::*;
-use crate::transport_layer::{TranportPack, TypePack};
-use bincode;
 use crate::protocol;
+use crate::transport_layer::{TranportPack, TypePack};
+use log::*;
 use rand::prelude::{thread_rng, Rng};
 use rand_distr::StandardNormal;
-
+use tokio::io::AsyncWriteExt;
+use tokio::net::TcpListener;
 
 const AVG_POWER: f64 = 4_000.0; // 4 kW
 const POWER_SPREAD: f64 = 100.0; // 100W
@@ -18,19 +15,20 @@ pub struct SockEmulator {
 }
 
 impl SockEmulator {
-     pub async fn start(mut self){
-        let listener = 
-        match TcpListener::bind(&self.ip_addr).await{
+    pub async fn start(mut self) {
+        let listener = match TcpListener::bind(&self.ip_addr).await {
             Ok(res) => res,
             Err(e) => {
-                error!("SockEmulator: can't bind to addr: {}, reason: {:?}", self.ip_addr, e);
+                error!(
+                    "SockEmulator: can't bind to addr: {}, reason: {:?}",
+                    self.ip_addr, e
+                );
                 return;
             }
         };
 
         loop {
-            let (mut tcp_stream, remote_addr) = 
-            match listener.accept().await{
+            let (mut tcp_stream, remote_addr) = match listener.accept().await {
                 Ok(res) => res,
                 Err(e) => {
                     error!("SockEmulator: can't accept new connection, reason: {:?}", e);
@@ -39,8 +37,7 @@ impl SockEmulator {
             };
 
             loop {
-                let pack = 
-                match TranportPack::from_reader(&mut tcp_stream).await{
+                let pack = match TranportPack::from_reader(&mut tcp_stream).await {
                     Ok(pack) => pack,
                     Err(e) => {
                         info!("Connection at address: {remote_addr} closed {:?}", e);
@@ -48,8 +45,7 @@ impl SockEmulator {
                     }
                 };
                 let payload = pack.into_payload();
-                let req: protocol::Request = 
-                match bincode::deserialize(&payload){
+                let req: protocol::Request = match bincode::deserialize(&payload) {
                     Ok(val) => val,
                     Err(e) => {
                         info!("Invalid request protocol: {:?}", e);
@@ -58,12 +54,14 @@ impl SockEmulator {
                 };
 
                 if req.addr != self.ip_addr {
-                    info!("Invalid address: self: {} but received: {}", self.ip_addr, req.addr);
+                    info!(
+                        "Invalid address: self: {} but received: {}",
+                        self.ip_addr, req.addr
+                    );
                     continue;
                 }
 
-                let resp = 
-                match req.cmd{
+                let resp = match req.cmd {
                     protocol::Cmd::TurnOn => {
                         self.turn_on();
                         protocol::Response::success_response(req)
@@ -100,19 +98,19 @@ impl SockEmulator {
 }
 
 impl SockEmulator {
-    pub fn new(ip_addr: &str) -> SockEmulator{
+    pub fn new(ip_addr: &str) -> SockEmulator {
         Self {
             ip_addr: ip_addr.to_owned(),
             is_turned_on: true,
         }
     }
 
-    fn turn_on(&mut self){
+    fn turn_on(&mut self) {
         info!("Socket is turned on");
         self.is_turned_on = true;
     }
 
-    fn turn_off(&mut self){
+    fn turn_off(&mut self) {
         info!("Socket is turned off");
         self.is_turned_on = false;
     }
@@ -123,8 +121,7 @@ impl SockEmulator {
         }
 
         let noize = thread_rng().sample::<f64, StandardNormal>(StandardNormal) - 0.5;
-        let scalied_noize = noize * POWER_SPREAD as f64;
-        let res = AVG_POWER + scalied_noize;
-        res
+        let scalied_noize = noize * POWER_SPREAD;
+        AVG_POWER + scalied_noize
     }
 }

@@ -1,11 +1,9 @@
-use tokio;
-use tokio::net::UdpSocket;
-use log::*;
-use crate::transport_layer::{TranportPack, TypePack};
-use bincode;
 use crate::protocol;
+use crate::transport_layer::{TranportPack, TypePack};
+use log::*;
 use rand::prelude::{thread_rng, Rng};
 use rand_distr::StandardNormal;
+use tokio::net::UdpSocket;
 
 const AVG_TEMP: f64 = 25.0; // C
 const TEMP_SPREAD: f64 = 5.0; // 100W
@@ -16,20 +14,21 @@ pub struct ThermEmulator {
 }
 
 impl ThermEmulator {
-     pub async fn start(mut self) {
-        let udp_sock = 
-        match UdpSocket::bind(&self.ip_addr).await{
+    pub async fn start(mut self) {
+        let udp_sock = match UdpSocket::bind(&self.ip_addr).await {
             Ok(res) => res,
             Err(e) => {
-                error!("ThermEmulator: can't bind to addr: {}, reason: {:?}", self.ip_addr, e);
+                error!(
+                    "ThermEmulator: can't bind to addr: {}, reason: {:?}",
+                    self.ip_addr, e
+                );
                 return;
             }
         };
 
         loop {
             let mut bin_pack = vec![0u8; 1500];
-            let (pack_size, remote_addr) = 
-            match udp_sock.recv_from(&mut bin_pack).await{
+            let (pack_size, remote_addr) = match udp_sock.recv_from(&mut bin_pack).await {
                 Ok(res) => res,
                 Err(e) => {
                     error!("Error recv udp datagram: {:?}", e);
@@ -39,8 +38,7 @@ impl ThermEmulator {
 
             bin_pack.shrink_to(pack_size);
 
-            let pack = 
-            match TranportPack::deserialize(&mut bin_pack){
+            let pack = match TranportPack::deserialize(&bin_pack) {
                 Ok(pack) => pack,
                 Err(e) => {
                     info!("Connection deserialize pack: {:?}", e);
@@ -48,8 +46,7 @@ impl ThermEmulator {
                 }
             };
             let payload = pack.into_payload();
-            let req: protocol::Request = 
-            match bincode::deserialize(&payload){
+            let req: protocol::Request = match bincode::deserialize(&payload) {
                 Ok(val) => val,
                 Err(e) => {
                     info!("Invalid request protocol: {:?}", e);
@@ -58,12 +55,14 @@ impl ThermEmulator {
             };
 
             if req.addr != self.ip_addr {
-                info!("Invalid address: self: {} but received: {}", self.ip_addr, req.addr);
+                info!(
+                    "Invalid address: self: {} but received: {}",
+                    self.ip_addr, req.addr
+                );
                 continue;
             }
 
-            let resp = 
-            match req.cmd{
+            let resp = match req.cmd {
                 protocol::Cmd::TurnOn => {
                     self.turn_on();
                     protocol::Response::success_response(req)
@@ -99,19 +98,19 @@ impl ThermEmulator {
 }
 
 impl ThermEmulator {
-    pub fn new(ip_addr: &str) -> ThermEmulator{
+    pub fn new(ip_addr: &str) -> ThermEmulator {
         Self {
             ip_addr: ip_addr.to_owned(),
             is_turned_on: true,
         }
     }
 
-    fn turn_on(&mut self){
+    fn turn_on(&mut self) {
         info!("Thermometer is turned on");
         self.is_turned_on = true;
     }
 
-    fn turn_off(&mut self){
+    fn turn_off(&mut self) {
         info!("Thermometer is turned off");
         self.is_turned_on = false;
     }
@@ -122,8 +121,7 @@ impl ThermEmulator {
         }
 
         let noize = thread_rng().sample::<f64, StandardNormal>(StandardNormal) - 0.5;
-        let scalied_noize = noize * TEMP_SPREAD as f64;
-        let res = AVG_TEMP + scalied_noize;
-        res
+        let scalied_noize = noize * TEMP_SPREAD;
+        AVG_TEMP + scalied_noize
     }
 }
